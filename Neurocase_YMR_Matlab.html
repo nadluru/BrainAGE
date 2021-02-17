@@ -1,0 +1,1037 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Neurocase_YMR</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-05"><meta name="DC.source" content="Neurocase_YMR.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Initialization</a></li><li><a href="#2">Control data</a></li><li><a href="#3">MYR data</a></li><li><a href="#4">Saving the data</a></li><li><a href="#5">Loading the XY</a></li><li><a href="#6">RVM</a></li><li><a href="#7">function TrainTest</a></li></ul></div><h2 id="1">Initialization</h2><pre class="codeinput">clc;
+clear;
+close <span class="string">all</span>;
+iif = @(varargin) varargin{2 * find([varargin{1:2:end}], 1, <span class="string">'first'</span>)}();
+
+<span class="comment">% Paths and software</span>
+csvFile = <span class="string">'AgesVisits.csv'</span>;
+nccam2Root = <span class="string">'/study/rinpoche/MRAnalysis/NCCAM2Data'</span>;
+maskFile = sprintf(<span class="string">'%s/MaskForBrainAGE.nii'</span>, nccam2Root);
+myrRoot = <span class="string">'/study/rinpoche/Processed'</span>;
+myr2005Root = <span class="string">'/study/rinpoche/2005Data/2005'</span>;
+
+addpath(genpath(<span class="string">'drtoolbox'</span>));
+addpath(genpath(<span class="string">'spider'</span>));
+</pre><pre class="codeoutput">Warning: Function norm has the same name as a MATLAB builtin. We suggest you
+rename the function to avoid a potential name conflict. 
+</pre><h2 id="2">Control data</h2><pre class="codeinput">csv = table2cell(readtable(csvFile, <span class="string">'Delimiter'</span>, <span class="string">','</span>));
+mask = load_nifti(maskFile);
+maskIdx = find(mask.vol(:) &gt; 0);
+numVoxels = length(maskIdx);
+
+imgFiles = cellfun(@(id, visit) sprintf(<span class="string">'%s/TimePoint%s/swmwc1o%s_%s_T1High+orig.nii'</span>, nccam2Root, visit, id, visit), csv(1:239, 1), csv(1:239, 4), <span class="string">'UniformOutput'</span>, false);
+gmVols = cellfun(@(img) load_nifti(img).vol, imgFiles, <span class="string">'UniformOutput'</span>, false);
+CtrlX = cell2mat(cellfun(@(gm) gm(maskIdx)', gmVols, <span class="string">'UniformOutput'</span>, false));
+CtrlY = cell2mat(csv(1:239, 5));
+</pre><h2 id="3">MYR data</h2><pre class="codeinput">MYRX = zeros(4, numVoxels);
+
+<span class="comment">% TP1 -- 2002</span>
+img2002 = zeros(3, numVoxels);
+<span class="comment">% Day 1</span>
+imgFile = sprintf(<span class="string">'%s/swmwc1o_SP3_day1_orig_2002.nii'</span>, myrRoot);
+img = load_nifti(imgFile);
+img2002(1, :) = img.vol(maskIdx);
+<span class="comment">% Day 2</span>
+imgFile = sprintf(<span class="string">'%s/swmwc1o_SP3_day2_orig_2002.nii'</span>, myrRoot);
+img = load_nifti(imgFile);
+img2002(2, :) = img.vol(maskIdx);
+<span class="comment">% Day 3</span>
+imgFile = sprintf(<span class="string">'%s/swmwc1o_SP3_day3_orig_2002.nii'</span>, myrRoot);
+img = load_nifti(imgFile);
+img2002(3, :) = img.vol(maskIdx);
+<span class="comment">% Mean</span>
+MYRX(1, :) = mean(img2002, 1);
+
+<span class="comment">% TP2 -- 2005</span>
+img2005 = zeros(2, numVoxels);
+<span class="comment">% Day 1</span>
+imgFile = sprintf(<span class="string">'%s/swmwc1oSP17_day1_orig.nii'</span>, myr2005Root);
+img = load_nifti(imgFile);
+img2005(1, :) = img.vol(maskIdx);
+<span class="comment">% Day 2</span>
+imgFile = sprintf(<span class="string">'%s/swmwc1oSP17_day1_orig.nii'</span>, myr2005Root);
+img = load_nifti(imgFile);
+img2005(2, :) = img.vol(maskIdx);
+<span class="comment">% Mean</span>
+MYRX(2, :) = mean(img2005, 1);
+
+<span class="comment">% TP3 -- 2007</span>
+imgFile = sprintf(<span class="string">'%s/2007/swmwc1o_EFGRE3D.nii'</span>, myrRoot);
+img = load_nifti(imgFile);
+MYRX(3, :) = img.vol(maskIdx);
+
+<span class="comment">%TP4 -- 2016</span>
+imgFile = sprintf(<span class="string">'%s/2016/swmwc1o_MR_PU_2016.nii'</span>, myrRoot);
+img = load_nifti(imgFile);
+MYRX(4, :) = img.vol(maskIdx);
+MYRY = [27; 30; 32; 41];
+</pre><h2 id="4">Saving the data</h2><pre class="codeinput">CtrlData = data(CtrlX, CtrlY);
+MYRData = data(MYRX, MYRY);
+save(<span class="string">'ControlData.mat'</span>, <span class="string">'CtrlData'</span>)
+save(<span class="string">'MYRData.mat'</span>, <span class="string">'MYRData'</span>)
+</pre><h2 id="5">Loading the XY</h2><pre class="codeinput">load(<span class="string">'ControlData.mat'</span>);
+load(<span class="string">'MYRData.mat'</span>);
+<span class="keyword">global</span> allX
+<span class="keyword">global</span> allY
+allX = [CtrlData.X; MYRData.X];
+allY = [CtrlData.Y; MYRData.Y];
+clear <span class="string">ControData</span> <span class="string">MYRData</span>;
+numVols = size(allX, 1);
+</pre><h2 id="6">RVM</h2><pre class="codeinput">BrainAGEExp = cell2mat(arrayfun(@(i) TrainTest(i, numVols), 1:numVols, <span class="string">'UniformOutput'</span>, false)');
+
+<span class="comment">% Sanity check</span>
+iif(sum(allY-(BrainAGEExp(:, 2)-BrainAGEExp(:, 1))) == 0, <span class="string">'OK'</span>,<span class="keyword">...</span>
+    true, <span class="string">'Check again'</span>)
+
+<span class="comment">% Save results</span>
+BrainAGEExp = [BrainAGEExp, allY];
+save(<span class="string">'BrainAGE_Results.csv'</span>, <span class="string">'BrainAGEExp'</span>, <span class="string">'-ascii'</span>);
+</pre><h2 id="7">function TrainTest</h2><pre class="codeinput"><span class="keyword">function</span> [BrainAGEExp] = TrainTest(i, numVols)
+tic;
+<span class="keyword">global</span> allX
+<span class="keyword">global</span> allY
+<span class="comment">% Training</span>
+trainX = allX;
+trainY = allY;
+trainX(i, :) = [];
+trainY(i) = [];
+trainD = data(trainX, trainY);
+[~, trainedModel] = train(relvm_r(kernel(<span class="string">'poly'</span>, 1)), trainD);
+<span class="comment">% Testing</span>
+testD = data(allX(i, :), allY(i));
+predTest = test(trainedModel, testD);
+<span class="comment">% BrainAGE (\Delta)</span>
+BrainAGE = predTest.X - predTest.Y;
+<span class="comment">% Estimated brain age</span>
+estAge = predTest.X;
+BrainAGEExp = [BrainAGE estAge];
+fprintf(<span class="string">'BrainAGE[%d/%d]=%f, EstAge[%d/%d]=%f, CA[%d/%d]=%f in %f sec.\n'</span>, i, numVols, BrainAGE,<span class="keyword">...</span>
+    i, numVols, estAge, i, numVols, allY(i), toc);
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 7.34627e-05 (&lt;0.001).
+BrainAGE[1/243]=1.972236, EstAge[1/243]=67.739360, CA[1/243]=65.767123 in 13.736264 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000856808 (&lt;0.001).
+BrainAGE[2/243]=5.336689, EstAge[2/243]=51.490114, CA[2/243]=46.153425 in 13.948067 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000856304 (&lt;0.001).
+BrainAGE[3/243]=9.954807, EstAge[3/243]=37.831519, CA[3/243]=27.876712 in 14.838922 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00057051 (&lt;0.001).
+BrainAGE[4/243]=7.832807, EstAge[4/243]=36.345136, CA[4/243]=28.512329 in 15.010141 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000613934 (&lt;0.001).
+BrainAGE[5/243]=1.906070, EstAge[5/243]=27.878673, CA[5/243]=25.972603 in 14.616095 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000195165 (&lt;0.001).
+BrainAGE[6/243]=-9.448149, EstAge[6/243]=43.568289, CA[6/243]=53.016438 in 12.665865 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000200592 (&lt;0.001).
+BrainAGE[7/243]=0.417079, EstAge[7/243]=40.162285, CA[7/243]=39.745205 in 14.667144 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000377451 (&lt;0.001).
+BrainAGE[8/243]=2.644455, EstAge[8/243]=35.677332, CA[8/243]=33.032877 in 13.790542 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000358896 (&lt;0.001).
+BrainAGE[9/243]=0.944724, EstAge[9/243]=39.407738, CA[9/243]=38.463014 in 14.769712 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000121738 (&lt;0.001).
+BrainAGE[10/243]=-2.438890, EstAge[10/243]=37.262480, CA[10/243]=39.701370 in 14.790648 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000188565 (&lt;0.001).
+BrainAGE[11/243]=0.103324, EstAge[11/243]=45.662228, CA[11/243]=45.558904 in 13.928445 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000237347 (&lt;0.001).
+BrainAGE[12/243]=1.352951, EstAge[12/243]=51.237883, CA[12/243]=49.884932 in 15.219052 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000700995 (&lt;0.001).
+BrainAGE[13/243]=-0.504422, EstAge[13/243]=56.254482, CA[13/243]=56.758904 in 13.995811 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000554432 (&lt;0.001).
+BrainAGE[14/243]=1.427199, EstAge[14/243]=40.755966, CA[14/243]=39.328767 in 14.798744 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000908546 (&lt;0.001).
+BrainAGE[15/243]=4.654666, EstAge[15/243]=50.851926, CA[15/243]=46.197260 in 14.544200 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000774814 (&lt;0.001).
+BrainAGE[16/243]=-0.780503, EstAge[16/243]=49.633196, CA[16/243]=50.413699 in 13.922579 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000467768 (&lt;0.001).
+BrainAGE[17/243]=-3.311480, EstAge[17/243]=57.058383, CA[17/243]=60.369863 in 14.424501 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 7.86639e-05 (&lt;0.001).
+BrainAGE[18/243]=-0.505181, EstAge[18/243]=53.752353, CA[18/243]=54.257534 in 14.747167 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000419957 (&lt;0.001).
+BrainAGE[19/243]=-2.415429, EstAge[19/243]=31.058544, CA[19/243]=33.473973 in 14.452428 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 8.50319e-05 (&lt;0.001).
+BrainAGE[20/243]=-0.174812, EstAge[20/243]=43.485462, CA[20/243]=43.660274 in 13.380393 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000739046 (&lt;0.001).
+BrainAGE[21/243]=1.134093, EstAge[21/243]=48.380669, CA[21/243]=47.246575 in 14.406232 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00023789 (&lt;0.001).
+BrainAGE[22/243]=-1.909024, EstAge[22/243]=53.069058, CA[22/243]=54.978082 in 13.977842 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000748075 (&lt;0.001).
+BrainAGE[23/243]=-1.426319, EstAge[23/243]=60.132585, CA[23/243]=61.558904 in 14.885733 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000105177 (&lt;0.001).
+BrainAGE[24/243]=-1.233467, EstAge[24/243]=33.947355, CA[24/243]=35.180822 in 14.689979 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000861713 (&lt;0.001).
+BrainAGE[25/243]=6.466367, EstAge[25/243]=35.049928, CA[25/243]=28.583562 in 13.572356 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000703493 (&lt;0.001).
+BrainAGE[26/243]=-3.636141, EstAge[26/243]=25.610435, CA[26/243]=29.246575 in 14.580243 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 9.40972e-05 (&lt;0.001).
+BrainAGE[27/243]=0.254447, EstAge[27/243]=37.007871, CA[27/243]=36.753425 in 14.908518 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000933338 (&lt;0.001).
+BrainAGE[28/243]=16.490844, EstAge[28/243]=52.468926, CA[28/243]=35.978082 in 15.001286 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000361117 (&lt;0.001).
+BrainAGE[29/243]=5.538627, EstAge[29/243]=32.031778, CA[29/243]=26.493151 in 12.788902 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000256351 (&lt;0.001).
+BrainAGE[30/243]=0.336869, EstAge[30/243]=55.769746, CA[30/243]=55.432877 in 16.045052 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 6.38788e-05 (&lt;0.001).
+BrainAGE[31/243]=0.739569, EstAge[31/243]=32.402582, CA[31/243]=31.663014 in 14.867547 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000184587 (&lt;0.001).
+BrainAGE[32/243]=-0.362183, EstAge[32/243]=53.854255, CA[32/243]=54.216438 in 14.796471 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00095512 (&lt;0.001).
+BrainAGE[33/243]=-2.133942, EstAge[33/243]=46.378387, CA[33/243]=48.512329 in 15.622022 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000294109 (&lt;0.001).
+BrainAGE[34/243]=-0.592644, EstAge[34/243]=47.648452, CA[34/243]=48.241096 in 13.358285 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 4.38589e-05 (&lt;0.001).
+BrainAGE[35/243]=-0.341249, EstAge[35/243]=27.645052, CA[35/243]=27.986301 in 14.865033 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00014637 (&lt;0.001).
+BrainAGE[36/243]=1.098279, EstAge[36/243]=40.659923, CA[36/243]=39.561644 in 14.790880 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 4.63494e-05 (&lt;0.001).
+BrainAGE[37/243]=3.527347, EstAge[37/243]=39.382142, CA[37/243]=35.854795 in 14.634041 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000103651 (&lt;0.001).
+BrainAGE[38/243]=-0.254908, EstAge[38/243]=54.443722, CA[38/243]=54.698630 in 13.116411 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000139361 (&lt;0.001).
+BrainAGE[39/243]=-0.176956, EstAge[39/243]=47.581948, CA[39/243]=47.758904 in 14.762237 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 3.93918e-05 (&lt;0.001).
+BrainAGE[40/243]=-1.713547, EstAge[40/243]=57.535768, CA[40/243]=59.249315 in 13.179600 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 4.54563e-05 (&lt;0.001).
+BrainAGE[41/243]=-0.933852, EstAge[41/243]=48.477106, CA[41/243]=49.410959 in 15.194260 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000109815 (&lt;0.001).
+BrainAGE[42/243]=-5.757804, EstAge[42/243]=42.455894, CA[42/243]=48.213699 in 13.795630 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000405633 (&lt;0.001).
+BrainAGE[43/243]=-2.810602, EstAge[43/243]=56.025014, CA[43/243]=58.835616 in 12.637949 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000590912 (&lt;0.001).
+BrainAGE[44/243]=-1.578648, EstAge[44/243]=49.698065, CA[44/243]=51.276712 in 14.879817 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000229902 (&lt;0.001).
+BrainAGE[45/243]=-14.351200, EstAge[45/243]=48.889896, CA[45/243]=63.241096 in 13.172665 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000996955 (&lt;0.001).
+BrainAGE[46/243]=2.669002, EstAge[46/243]=52.058043, CA[46/243]=49.389041 in 14.215314 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000760087 (&lt;0.001).
+BrainAGE[47/243]=-1.571603, EstAge[47/243]=44.000999, CA[47/243]=45.572603 in 14.949352 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 4.62391e-05 (&lt;0.001).
+BrainAGE[48/243]=3.706972, EstAge[48/243]=30.569986, CA[48/243]=26.863014 in 14.588308 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000231119 (&lt;0.001).
+BrainAGE[49/243]=-0.229060, EstAge[49/243]=43.957242, CA[49/243]=44.186301 in 14.946195 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00033252 (&lt;0.001).
+BrainAGE[50/243]=0.553587, EstAge[50/243]=33.068656, CA[50/243]=32.515068 in 15.035340 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000570448 (&lt;0.001).
+BrainAGE[51/243]=2.080627, EstAge[51/243]=45.872408, CA[51/243]=43.791781 in 14.783464 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 6.99544e-05 (&lt;0.001).
+BrainAGE[52/243]=-8.933745, EstAge[52/243]=50.926529, CA[52/243]=59.860274 in 14.498613 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000913119 (&lt;0.001).
+BrainAGE[53/243]=2.109741, EstAge[53/243]=61.800152, CA[53/243]=59.690411 in 13.229943 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000183965 (&lt;0.001).
+BrainAGE[54/243]=-4.525908, EstAge[54/243]=51.871352, CA[54/243]=56.397260 in 14.738688 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000296639 (&lt;0.001).
+BrainAGE[55/243]=-7.775303, EstAge[55/243]=44.232916, CA[55/243]=52.008219 in 14.450368 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000234719 (&lt;0.001).
+BrainAGE[56/243]=-0.203068, EstAge[56/243]=53.429809, CA[56/243]=53.632877 in 12.813282 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000518636 (&lt;0.001).
+BrainAGE[57/243]=-0.035980, EstAge[57/243]=56.347581, CA[57/243]=56.383562 in 13.753258 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000415305 (&lt;0.001).
+BrainAGE[58/243]=-1.210676, EstAge[58/243]=57.559187, CA[58/243]=58.769863 in 14.806876 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00099028 (&lt;0.001).
+BrainAGE[59/243]=-0.897118, EstAge[59/243]=35.168636, CA[59/243]=36.065753 in 13.132839 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000806956 (&lt;0.001).
+BrainAGE[60/243]=-3.369209, EstAge[60/243]=56.411613, CA[60/243]=59.780822 in 14.725936 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000806834 (&lt;0.001).
+BrainAGE[61/243]=4.668813, EstAge[61/243]=55.953745, CA[61/243]=51.284932 in 15.155011 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 3.02246e-05 (&lt;0.001).
+BrainAGE[62/243]=1.560705, EstAge[62/243]=53.111390, CA[62/243]=51.550685 in 14.847280 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000149168 (&lt;0.001).
+BrainAGE[63/243]=-1.143567, EstAge[63/243]=51.516707, CA[63/243]=52.660274 in 13.812205 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000769656 (&lt;0.001).
+BrainAGE[64/243]=0.609941, EstAge[64/243]=36.297612, CA[64/243]=35.687671 in 12.075694 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000335547 (&lt;0.001).
+BrainAGE[65/243]=-1.814758, EstAge[65/243]=62.714009, CA[65/243]=64.528767 in 13.015178 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 2.34221e-05 (&lt;0.001).
+BrainAGE[66/243]=-0.658562, EstAge[66/243]=62.845548, CA[66/243]=63.504110 in 12.967757 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000591555 (&lt;0.001).
+BrainAGE[67/243]=0.781428, EstAge[67/243]=48.236222, CA[67/243]=47.454795 in 14.486225 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000300996 (&lt;0.001).
+BrainAGE[68/243]=-0.010723, EstAge[68/243]=42.085168, CA[68/243]=42.095890 in 14.469707 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000990087 (&lt;0.001).
+BrainAGE[69/243]=-4.308262, EstAge[69/243]=55.683519, CA[69/243]=59.991781 in 13.246782 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000855381 (&lt;0.001).
+BrainAGE[70/243]=-3.233079, EstAge[70/243]=60.923085, CA[70/243]=64.156164 in 14.849730 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000193732 (&lt;0.001).
+BrainAGE[71/243]=-3.486525, EstAge[71/243]=56.806626, CA[71/243]=60.293151 in 14.621428 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000296041 (&lt;0.001).
+BrainAGE[72/243]=0.666410, EstAge[72/243]=58.721205, CA[72/243]=58.054795 in 16.294477 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000236595 (&lt;0.001).
+BrainAGE[73/243]=-0.315978, EstAge[73/243]=43.464844, CA[73/243]=43.780822 in 14.555080 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 9.88403e-05 (&lt;0.001).
+BrainAGE[74/243]=1.068985, EstAge[74/243]=43.414191, CA[74/243]=42.345205 in 13.309647 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000526894 (&lt;0.001).
+BrainAGE[75/243]=-1.774570, EstAge[75/243]=32.156937, CA[75/243]=33.931507 in 15.826521 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 4.48261e-05 (&lt;0.001).
+BrainAGE[76/243]=0.147490, EstAge[76/243]=46.035161, CA[76/243]=45.887671 in 14.736567 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 9.71994e-05 (&lt;0.001).
+BrainAGE[77/243]=0.790400, EstAge[77/243]=48.275332, CA[77/243]=47.484932 in 12.386463 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 9.90118e-05 (&lt;0.001).
+BrainAGE[78/243]=0.228095, EstAge[78/243]=29.871931, CA[78/243]=29.643836 in 14.186400 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00024221 (&lt;0.001).
+BrainAGE[79/243]=4.335686, EstAge[79/243]=44.239795, CA[79/243]=39.904110 in 14.432858 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000278621 (&lt;0.001).
+BrainAGE[80/243]=-1.349674, EstAge[80/243]=63.348957, CA[80/243]=64.698630 in 13.090664 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000621259 (&lt;0.001).
+BrainAGE[81/243]=-4.088158, EstAge[81/243]=56.574856, CA[81/243]=60.663014 in 14.556182 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 3.44542e-05 (&lt;0.001).
+BrainAGE[82/243]=1.272895, EstAge[82/243]=45.952347, CA[82/243]=44.679452 in 12.956040 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 8.68857e-05 (&lt;0.001).
+BrainAGE[83/243]=5.660477, EstAge[83/243]=61.882395, CA[83/243]=56.221918 in 14.759994 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 8.43734e-05 (&lt;0.001).
+BrainAGE[84/243]=0.775976, EstAge[84/243]=40.732141, CA[84/243]=39.956164 in 15.663476 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000227721 (&lt;0.001).
+BrainAGE[85/243]=-1.731224, EstAge[85/243]=45.331789, CA[85/243]=47.063014 in 15.229149 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000842419 (&lt;0.001).
+BrainAGE[86/243]=-1.151838, EstAge[86/243]=60.376929, CA[86/243]=61.528767 in 15.309656 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00041128 (&lt;0.001).
+BrainAGE[87/243]=-9.539842, EstAge[87/243]=56.460158, CA[87/243]=66.000000 in 14.453098 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000952414 (&lt;0.001).
+BrainAGE[88/243]=-3.212001, EstAge[88/243]=59.930465, CA[88/243]=63.142466 in 14.447123 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000175376 (&lt;0.001).
+BrainAGE[89/243]=-1.675272, EstAge[89/243]=61.258974, CA[89/243]=62.934247 in 13.265988 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000549992 (&lt;0.001).
+BrainAGE[90/243]=1.538401, EstAge[90/243]=57.384976, CA[90/243]=55.846575 in 14.728729 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000297578 (&lt;0.001).
+BrainAGE[91/243]=-3.812129, EstAge[91/243]=47.941295, CA[91/243]=51.753425 in 14.282506 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00010092 (&lt;0.001).
+BrainAGE[92/243]=2.609228, EstAge[92/243]=53.381831, CA[92/243]=50.772603 in 15.562879 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000339106 (&lt;0.001).
+BrainAGE[93/243]=-3.420353, EstAge[93/243]=60.385127, CA[93/243]=63.805479 in 14.974034 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 9.54565e-05 (&lt;0.001).
+BrainAGE[94/243]=-4.800315, EstAge[94/243]=60.495575, CA[94/243]=65.295890 in 14.340281 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000988726 (&lt;0.001).
+BrainAGE[95/243]=-5.490668, EstAge[95/243]=50.892894, CA[95/243]=56.383562 in 14.011567 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000113649 (&lt;0.001).
+BrainAGE[96/243]=0.156832, EstAge[96/243]=51.814367, CA[96/243]=51.657534 in 13.648142 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000167569 (&lt;0.001).
+BrainAGE[97/243]=-0.854894, EstAge[97/243]=52.106749, CA[97/243]=52.961644 in 14.730684 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000351448 (&lt;0.001).
+BrainAGE[98/243]=-3.959062, EstAge[98/243]=56.629979, CA[98/243]=60.589041 in 13.280562 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000265194 (&lt;0.001).
+BrainAGE[99/243]=-0.452392, EstAge[99/243]=50.490074, CA[99/243]=50.942466 in 14.448312 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000600181 (&lt;0.001).
+BrainAGE[100/243]=-0.787713, EstAge[100/243]=53.198588, CA[100/243]=53.986301 in 12.996345 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 6.3644e-05 (&lt;0.001).
+BrainAGE[101/243]=-1.802692, EstAge[101/243]=58.137035, CA[101/243]=59.939726 in 13.965745 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00099654 (&lt;0.001).
+BrainAGE[102/243]=2.273945, EstAge[102/243]=44.057506, CA[102/243]=41.783562 in 15.676173 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 3.34603e-05 (&lt;0.001).
+BrainAGE[103/243]=1.581871, EstAge[103/243]=56.924336, CA[103/243]=55.342466 in 14.072501 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000237959 (&lt;0.001).
+BrainAGE[104/243]=0.642545, EstAge[104/243]=47.250764, CA[104/243]=46.608219 in 15.689924 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 3.87843e-05 (&lt;0.001).
+BrainAGE[105/243]=4.474806, EstAge[105/243]=51.781655, CA[105/243]=47.306849 in 15.931628 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000659417 (&lt;0.001).
+BrainAGE[106/243]=-8.415719, EstAge[106/243]=57.699350, CA[106/243]=66.115068 in 13.396721 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 4.5715e-05 (&lt;0.001).
+BrainAGE[107/243]=2.448290, EstAge[107/243]=48.889386, CA[107/243]=46.441096 in 14.140167 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000589951 (&lt;0.001).
+BrainAGE[108/243]=3.655344, EstAge[108/243]=31.858084, CA[108/243]=28.202740 in 15.058694 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 5.60131e-05 (&lt;0.001).
+BrainAGE[109/243]=1.988365, EstAge[109/243]=30.854119, CA[109/243]=28.865753 in 14.915502 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000604362 (&lt;0.001).
+BrainAGE[110/243]=4.156904, EstAge[110/243]=30.321288, CA[110/243]=26.164384 in 13.153973 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 7.65993e-05 (&lt;0.001).
+BrainAGE[111/243]=-5.145404, EstAge[111/243]=48.273774, CA[111/243]=53.419178 in 14.762676 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 3.62669e-05 (&lt;0.001).
+BrainAGE[112/243]=-2.101409, EstAge[112/243]=37.873933, CA[112/243]=39.975342 in 14.937639 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000305265 (&lt;0.001).
+BrainAGE[113/243]=3.060478, EstAge[113/243]=36.493355, CA[113/243]=33.432877 in 14.239115 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000170844 (&lt;0.001).
+BrainAGE[114/243]=-0.560607, EstAge[114/243]=38.277749, CA[114/243]=38.838356 in 13.193086 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000616291 (&lt;0.001).
+BrainAGE[115/243]=3.254937, EstAge[115/243]=43.359046, CA[115/243]=40.104110 in 14.813705 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000423956 (&lt;0.001).
+BrainAGE[116/243]=-5.949148, EstAge[116/243]=39.839893, CA[116/243]=45.789041 in 14.614742 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000187621 (&lt;0.001).
+BrainAGE[117/243]=-0.334327, EstAge[117/243]=49.876631, CA[117/243]=50.210959 in 12.771804 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00012018 (&lt;0.001).
+BrainAGE[118/243]=-0.510474, EstAge[118/243]=56.631991, CA[118/243]=57.142466 in 13.099420 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00051237 (&lt;0.001).
+BrainAGE[119/243]=2.386294, EstAge[119/243]=42.041089, CA[119/243]=39.654795 in 13.756572 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000394436 (&lt;0.001).
+BrainAGE[120/243]=-3.044125, EstAge[120/243]=43.405190, CA[120/243]=46.449315 in 14.825329 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00019669 (&lt;0.001).
+BrainAGE[121/243]=1.571034, EstAge[121/243]=52.395691, CA[121/243]=50.824658 in 13.841741 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000380798 (&lt;0.001).
+BrainAGE[122/243]=0.022368, EstAge[122/243]=60.608669, CA[122/243]=60.586301 in 14.606525 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 7.60143e-05 (&lt;0.001).
+BrainAGE[123/243]=-5.656401, EstAge[123/243]=48.907983, CA[123/243]=54.564384 in 14.971596 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00079534 (&lt;0.001).
+BrainAGE[124/243]=5.319427, EstAge[124/243]=38.985181, CA[124/243]=33.665753 in 13.539393 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 9.63325e-05 (&lt;0.001).
+BrainAGE[125/243]=0.413982, EstAge[125/243]=44.411242, CA[125/243]=43.997260 in 15.255407 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 5.36571e-05 (&lt;0.001).
+BrainAGE[126/243]=-1.498416, EstAge[126/243]=46.065967, CA[126/243]=47.564384 in 15.983420 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000427817 (&lt;0.001).
+BrainAGE[127/243]=0.688203, EstAge[127/243]=55.992313, CA[127/243]=55.304110 in 14.968076 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 9.57774e-05 (&lt;0.001).
+BrainAGE[128/243]=1.402647, EstAge[128/243]=63.314975, CA[128/243]=61.912329 in 13.820786 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 7.51052e-05 (&lt;0.001).
+BrainAGE[129/243]=1.745197, EstAge[129/243]=37.213690, CA[129/243]=35.468493 in 14.574911 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000830042 (&lt;0.001).
+BrainAGE[130/243]=2.447200, EstAge[130/243]=31.288296, CA[130/243]=28.841096 in 13.245654 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000205117 (&lt;0.001).
+BrainAGE[131/243]=3.935618, EstAge[131/243]=33.582193, CA[131/243]=29.646575 in 13.037730 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000930859 (&lt;0.001).
+BrainAGE[132/243]=3.774366, EstAge[132/243]=40.826421, CA[132/243]=37.052055 in 12.824863 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000328025 (&lt;0.001).
+BrainAGE[133/243]=-12.261709, EstAge[133/243]=23.919113, CA[133/243]=36.180822 in 13.689545 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000376616 (&lt;0.001).
+BrainAGE[134/243]=3.564911, EstAge[134/243]=30.375870, CA[134/243]=26.810959 in 14.293502 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 4.60401e-05 (&lt;0.001).
+BrainAGE[135/243]=0.385907, EstAge[135/243]=56.133852, CA[135/243]=55.747945 in 12.714661 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00048205 (&lt;0.001).
+BrainAGE[136/243]=5.052255, EstAge[136/243]=36.945406, CA[136/243]=31.893151 in 12.632114 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000937579 (&lt;0.001).
+BrainAGE[137/243]=-0.980116, EstAge[137/243]=53.523993, CA[137/243]=54.504110 in 13.398029 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00012151 (&lt;0.001).
+BrainAGE[138/243]=-0.660593, EstAge[138/243]=48.216120, CA[138/243]=48.876712 in 14.955448 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 3.93575e-05 (&lt;0.001).
+BrainAGE[139/243]=-0.703604, EstAge[139/243]=47.959410, CA[139/243]=48.663014 in 13.276968 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000580734 (&lt;0.001).
+BrainAGE[140/243]=2.520558, EstAge[140/243]=30.893161, CA[140/243]=28.372603 in 13.787465 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 8.66176e-05 (&lt;0.001).
+BrainAGE[141/243]=0.976732, EstAge[141/243]=40.954814, CA[141/243]=39.978082 in 13.145653 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000140062 (&lt;0.001).
+BrainAGE[142/243]=0.972765, EstAge[142/243]=37.383724, CA[142/243]=36.410959 in 16.068314 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000561045 (&lt;0.001).
+BrainAGE[143/243]=-0.894740, EstAge[143/243]=54.244986, CA[143/243]=55.139726 in 14.391861 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000107603 (&lt;0.001).
+BrainAGE[144/243]=-0.437984, EstAge[144/243]=47.819550, CA[144/243]=48.257534 in 14.922405 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000132222 (&lt;0.001).
+BrainAGE[145/243]=0.472317, EstAge[145/243]=60.105194, CA[145/243]=59.632877 in 13.295520 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000134212 (&lt;0.001).
+BrainAGE[146/243]=0.614544, EstAge[146/243]=50.447421, CA[146/243]=49.832877 in 14.888676 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000219633 (&lt;0.001).
+BrainAGE[147/243]=4.739917, EstAge[147/243]=53.317999, CA[147/243]=48.578082 in 15.172788 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 3.69718e-05 (&lt;0.001).
+BrainAGE[148/243]=0.751655, EstAge[148/243]=60.124258, CA[148/243]=59.372603 in 14.993491 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000988915 (&lt;0.001).
+BrainAGE[149/243]=2.467717, EstAge[149/243]=54.108813, CA[149/243]=51.641096 in 15.182479 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000458264 (&lt;0.001).
+BrainAGE[150/243]=-14.669794, EstAge[150/243]=48.908288, CA[150/243]=63.578082 in 14.903298 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 1.99045e-05 (&lt;0.001).
+BrainAGE[151/243]=-0.284567, EstAge[151/243]=49.564749, CA[151/243]=49.849315 in 14.717378 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000955835 (&lt;0.001).
+BrainAGE[152/243]=-0.982844, EstAge[152/243]=44.954143, CA[152/243]=45.936986 in 14.805897 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000169696 (&lt;0.001).
+BrainAGE[153/243]=-1.914678, EstAge[153/243]=25.351075, CA[153/243]=27.265753 in 14.757508 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 2.35263e-05 (&lt;0.001).
+BrainAGE[154/243]=0.622759, EstAge[154/243]=45.096731, CA[154/243]=44.473973 in 13.494372 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 5.37391e-05 (&lt;0.001).
+BrainAGE[155/243]=2.427626, EstAge[155/243]=35.285160, CA[155/243]=32.857534 in 14.741524 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000171979 (&lt;0.001).
+BrainAGE[156/243]=-0.243914, EstAge[156/243]=43.980743, CA[156/243]=44.224658 in 13.300415 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000112356 (&lt;0.001).
+BrainAGE[157/243]=-1.876315, EstAge[157/243]=58.025055, CA[157/243]=59.901370 in 15.170403 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000335953 (&lt;0.001).
+BrainAGE[158/243]=1.244549, EstAge[158/243]=57.888384, CA[158/243]=56.643836 in 13.255209 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000364242 (&lt;0.001).
+BrainAGE[159/243]=6.204307, EstAge[159/243]=58.549513, CA[159/243]=52.345205 in 14.912321 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000268956 (&lt;0.001).
+BrainAGE[160/243]=-1.521082, EstAge[160/243]=52.426863, CA[160/243]=53.947945 in 14.963969 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000532967 (&lt;0.001).
+BrainAGE[161/243]=0.348376, EstAge[161/243]=57.077143, CA[161/243]=56.728767 in 14.518333 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000105934 (&lt;0.001).
+BrainAGE[162/243]=0.263963, EstAge[162/243]=59.532456, CA[162/243]=59.268493 in 12.736495 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000344384 (&lt;0.001).
+BrainAGE[163/243]=2.234135, EstAge[163/243]=38.672491, CA[163/243]=36.438356 in 14.888583 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000149008 (&lt;0.001).
+BrainAGE[164/243]=0.186998, EstAge[164/243]=60.351382, CA[164/243]=60.164384 in 13.520683 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000847148 (&lt;0.001).
+BrainAGE[165/243]=-4.787204, EstAge[165/243]=46.727864, CA[165/243]=51.515068 in 14.498122 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 8.4222e-05 (&lt;0.001).
+BrainAGE[166/243]=-3.098310, EstAge[166/243]=48.778402, CA[166/243]=51.876712 in 13.350293 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000198368 (&lt;0.001).
+BrainAGE[167/243]=-1.589713, EstAge[167/243]=51.377410, CA[167/243]=52.967123 in 14.778838 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000907876 (&lt;0.001).
+BrainAGE[168/243]=3.888661, EstAge[168/243]=39.825647, CA[168/243]=35.936986 in 13.581929 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 7.07517e-05 (&lt;0.001).
+BrainAGE[169/243]=-2.594531, EstAge[169/243]=62.276702, CA[169/243]=64.871233 in 14.697600 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000971951 (&lt;0.001).
+BrainAGE[170/243]=-0.150252, EstAge[170/243]=63.652488, CA[170/243]=63.802740 in 15.008596 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000804648 (&lt;0.001).
+BrainAGE[171/243]=1.001477, EstAge[171/243]=48.790518, CA[171/243]=47.789041 in 13.273583 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000839978 (&lt;0.001).
+BrainAGE[172/243]=1.213518, EstAge[172/243]=43.903929, CA[172/243]=42.690411 in 14.362054 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000299217 (&lt;0.001).
+BrainAGE[173/243]=2.675075, EstAge[173/243]=63.318911, CA[173/243]=60.643836 in 13.085344 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000727493 (&lt;0.001).
+BrainAGE[174/243]=-1.610757, EstAge[174/243]=62.948147, CA[174/243]=64.558904 in 13.471129 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000154488 (&lt;0.001).
+BrainAGE[175/243]=-5.670415, EstAge[175/243]=55.025475, CA[175/243]=60.695890 in 13.967911 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000121345 (&lt;0.001).
+BrainAGE[176/243]=-1.138953, EstAge[176/243]=57.356937, CA[176/243]=58.495890 in 13.340120 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 8.04706e-05 (&lt;0.001).
+BrainAGE[177/243]=-0.176820, EstAge[177/243]=44.006741, CA[177/243]=44.183562 in 12.729961 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000119986 (&lt;0.001).
+BrainAGE[178/243]=0.495165, EstAge[178/243]=43.289686, CA[178/243]=42.794521 in 14.232138 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000959568 (&lt;0.001).
+BrainAGE[179/243]=4.283891, EstAge[179/243]=38.560604, CA[179/243]=34.276712 in 13.780857 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000693387 (&lt;0.001).
+BrainAGE[180/243]=1.097216, EstAge[180/243]=47.275298, CA[180/243]=46.178082 in 12.954614 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000310789 (&lt;0.001).
+BrainAGE[181/243]=-0.865822, EstAge[181/243]=46.871164, CA[181/243]=47.736986 in 15.430516 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00025375 (&lt;0.001).
+BrainAGE[182/243]=6.904034, EstAge[182/243]=36.816363, CA[182/243]=29.912329 in 14.707962 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 7.43348e-05 (&lt;0.001).
+BrainAGE[183/243]=4.731025, EstAge[183/243]=45.125546, CA[183/243]=40.394521 in 14.056325 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000218133 (&lt;0.001).
+BrainAGE[184/243]=-5.283486, EstAge[184/243]=59.738432, CA[184/243]=65.021918 in 15.467629 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 6.94619e-05 (&lt;0.001).
+BrainAGE[185/243]=-1.076894, EstAge[185/243]=59.988860, CA[185/243]=61.065753 in 13.259611 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 3.71266e-05 (&lt;0.001).
+BrainAGE[186/243]=-2.065279, EstAge[186/243]=43.036091, CA[186/243]=45.101370 in 14.114344 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000923151 (&lt;0.001).
+BrainAGE[187/243]=-7.364250, EstAge[187/243]=49.276846, CA[187/243]=56.641096 in 15.203518 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 3.62701e-05 (&lt;0.001).
+BrainAGE[188/243]=1.064406, EstAge[188/243]=41.401392, CA[188/243]=40.336986 in 13.614351 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000125498 (&lt;0.001).
+BrainAGE[189/243]=1.149888, EstAge[189/243]=48.585505, CA[189/243]=47.435616 in 14.027936 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000892901 (&lt;0.001).
+BrainAGE[190/243]=-7.137617, EstAge[190/243]=54.758274, CA[190/243]=61.895890 in 15.140386 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000353391 (&lt;0.001).
+BrainAGE[191/243]=-8.715573, EstAge[191/243]=57.706344, CA[191/243]=66.421918 in 13.011781 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000301027 (&lt;0.001).
+BrainAGE[192/243]=-1.399697, EstAge[192/243]=62.260577, CA[192/243]=63.660274 in 13.157022 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000503605 (&lt;0.001).
+BrainAGE[193/243]=-7.406148, EstAge[193/243]=55.988373, CA[193/243]=63.394521 in 13.159034 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000341343 (&lt;0.001).
+BrainAGE[194/243]=-3.353955, EstAge[194/243]=52.799470, CA[194/243]=56.153425 in 14.106749 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000710962 (&lt;0.001).
+BrainAGE[195/243]=-6.917617, EstAge[195/243]=45.161835, CA[195/243]=52.079452 in 14.959626 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 9.88563e-05 (&lt;0.001).
+BrainAGE[196/243]=0.700928, EstAge[196/243]=51.837914, CA[196/243]=51.136986 in 13.536016 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000471279 (&lt;0.001).
+BrainAGE[197/243]=-2.315827, EstAge[197/243]=61.873214, CA[197/243]=64.189041 in 14.564489 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 7.10092e-05 (&lt;0.001).
+BrainAGE[198/243]=-0.485020, EstAge[198/243]=65.232789, CA[198/243]=65.717808 in 14.942226 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000773004 (&lt;0.001).
+BrainAGE[199/243]=-5.008531, EstAge[199/243]=51.681880, CA[199/243]=56.690411 in 15.047778 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000917488 (&lt;0.001).
+BrainAGE[200/243]=-0.621441, EstAge[200/243]=51.296367, CA[200/243]=51.917808 in 13.143649 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000764578 (&lt;0.001).
+BrainAGE[201/243]=-0.233798, EstAge[201/243]=53.226476, CA[201/243]=53.460274 in 14.034882 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000235063 (&lt;0.001).
+BrainAGE[202/243]=-2.384047, EstAge[202/243]=58.607734, CA[202/243]=60.991781 in 13.190690 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000635291 (&lt;0.001).
+BrainAGE[203/243]=-5.041815, EstAge[203/243]=46.254075, CA[203/243]=51.295890 in 14.600933 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000330752 (&lt;0.001).
+BrainAGE[204/243]=0.301746, EstAge[204/243]=54.641472, CA[204/243]=54.339726 in 13.095727 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 8.27668e-05 (&lt;0.001).
+BrainAGE[205/243]=-3.826610, EstAge[205/243]=56.592568, CA[205/243]=60.419178 in 15.022122 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000240018 (&lt;0.001).
+BrainAGE[206/243]=2.326227, EstAge[206/243]=44.427597, CA[206/243]=42.101370 in 15.053481 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 4.57864e-05 (&lt;0.001).
+BrainAGE[207/243]=-2.399379, EstAge[207/243]=53.112949, CA[207/243]=55.512329 in 13.181989 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000857885 (&lt;0.001).
+BrainAGE[208/243]=-3.030133, EstAge[208/243]=43.876716, CA[208/243]=46.906849 in 14.449583 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000989223 (&lt;0.001).
+BrainAGE[209/243]=0.705768, EstAge[209/243]=48.308508, CA[209/243]=47.602740 in 14.606136 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000442617 (&lt;0.001).
+BrainAGE[210/243]=3.956171, EstAge[210/243]=44.315075, CA[210/243]=40.358904 in 15.032877 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000185935 (&lt;0.001).
+BrainAGE[211/243]=-2.072007, EstAge[211/243]=48.495116, CA[211/243]=50.567123 in 13.244216 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000204036 (&lt;0.001).
+BrainAGE[212/243]=2.150537, EstAge[212/243]=48.925880, CA[212/243]=46.775342 in 10.711007 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000209101 (&lt;0.001).
+BrainAGE[213/243]=-0.479056, EstAge[213/243]=50.699026, CA[213/243]=51.178082 in 14.280293 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000111674 (&lt;0.001).
+BrainAGE[214/243]=5.196157, EstAge[214/243]=39.264651, CA[214/243]=34.068493 in 12.164338 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000590669 (&lt;0.001).
+BrainAGE[215/243]=-1.129783, EstAge[215/243]=61.051039, CA[215/243]=62.180822 in 14.755490 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00010932 (&lt;0.001).
+BrainAGE[216/243]=-0.797471, EstAge[216/243]=28.388830, CA[216/243]=29.186301 in 14.907811 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000238789 (&lt;0.001).
+BrainAGE[217/243]=0.706999, EstAge[217/243]=38.027547, CA[217/243]=37.320548 in 13.421809 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000429248 (&lt;0.001).
+BrainAGE[218/243]=-0.664708, EstAge[218/243]=55.409265, CA[218/243]=56.073973 in 14.836086 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 5.02346e-05 (&lt;0.001).
+BrainAGE[219/243]=0.555420, EstAge[219/243]=49.533503, CA[219/243]=48.978082 in 13.245751 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000109056 (&lt;0.001).
+BrainAGE[220/243]=5.403046, EstAge[220/243]=45.783868, CA[220/243]=40.380822 in 14.724788 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000249502 (&lt;0.001).
+BrainAGE[221/243]=10.810647, EstAge[221/243]=47.566811, CA[221/243]=36.756164 in 15.046248 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000140795 (&lt;0.001).
+BrainAGE[222/243]=-3.802359, EstAge[222/243]=51.720929, CA[222/243]=55.523288 in 15.275533 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000303879 (&lt;0.001).
+BrainAGE[223/243]=-2.199400, EstAge[223/243]=46.422518, CA[223/243]=48.621918 in 12.324618 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000288503 (&lt;0.001).
+BrainAGE[224/243]=8.000618, EstAge[224/243]=41.225275, CA[224/243]=33.224658 in 15.400514 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00016079 (&lt;0.001).
+BrainAGE[225/243]=-8.802726, EstAge[225/243]=51.728781, CA[225/243]=60.531507 in 14.361862 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000495834 (&lt;0.001).
+BrainAGE[226/243]=-2.418128, EstAge[226/243]=54.458584, CA[226/243]=56.876712 in 14.759966 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 3.08794e-05 (&lt;0.001).
+BrainAGE[227/243]=0.633282, EstAge[227/243]=52.567529, CA[227/243]=51.934247 in 13.404859 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000830025 (&lt;0.001).
+BrainAGE[228/243]=3.488795, EstAge[228/243]=56.724411, CA[228/243]=53.235616 in 14.961273 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.00034093 (&lt;0.001).
+BrainAGE[229/243]=0.288467, EstAge[229/243]=64.417234, CA[229/243]=64.128767 in 13.023967 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000165985 (&lt;0.001).
+BrainAGE[230/243]=-2.061329, EstAge[230/243]=40.801684, CA[230/243]=42.863014 in 14.592776 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000847429 (&lt;0.001).
+BrainAGE[231/243]=-3.047148, EstAge[231/243]=55.717235, CA[231/243]=58.764384 in 14.242103 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000926109 (&lt;0.001).
+BrainAGE[232/243]=-0.710042, EstAge[232/243]=61.454342, CA[232/243]=62.164384 in 14.947066 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000393035 (&lt;0.001).
+BrainAGE[233/243]=-1.933246, EstAge[233/243]=54.546206, CA[233/243]=56.479452 in 14.112100 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000210119 (&lt;0.001).
+BrainAGE[234/243]=0.132736, EstAge[234/243]=51.557393, CA[234/243]=51.424658 in 14.853185 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000165994 (&lt;0.001).
+BrainAGE[235/243]=1.330316, EstAge[235/243]=67.275522, CA[235/243]=65.945205 in 12.870837 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000230567 (&lt;0.001).
+BrainAGE[236/243]=-1.980133, EstAge[236/243]=50.291100, CA[236/243]=52.271233 in 14.456068 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000107582 (&lt;0.001).
+BrainAGE[237/243]=3.828452, EstAge[237/243]=57.450370, CA[237/243]=53.621918 in 14.403758 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000205326 (&lt;0.001).
+BrainAGE[238/243]=1.273510, EstAge[238/243]=62.476250, CA[238/243]=61.202740 in 15.088397 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 6.19341e-05 (&lt;0.001).
+BrainAGE[239/243]=-1.946608, EstAge[239/243]=40.461611, CA[239/243]=42.408219 in 13.201857 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000166539 (&lt;0.001).
+BrainAGE[240/243]=5.251879, EstAge[240/243]=32.251879, CA[240/243]=27.000000 in 14.818565 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000100379 (&lt;0.001).
+BrainAGE[241/243]=-1.809527, EstAge[241/243]=28.190473, CA[241/243]=30.000000 in 13.239284 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000618591 (&lt;0.001).
+BrainAGE[242/243]=3.572815, EstAge[242/243]=35.572815, CA[242/243]=32.000000 in 14.691788 sec.
+training relvm_r kernel poly=1.... 
+Terminating: max log(alpha) change is 0.000235164 (&lt;0.001).
+BrainAGE[243/243]=-5.079924, EstAge[243/243]=35.920076, CA[243/243]=41.000000 in 15.081305 sec.
+
+ans =
+
+    'OK'
+
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Initialization
+clc;
+clear;
+close all;
+iif = @(varargin) varargin{2 * find([varargin{1:2:end}], 1, 'first')}();
+
+% Paths and software
+csvFile = 'AgesVisits.csv';
+nccam2Root = '/study/rinpoche/MRAnalysis/NCCAM2Data';
+maskFile = sprintf('%s/MaskForBrainAGE.nii', nccam2Root);
+myrRoot = '/study/rinpoche/Processed';
+myr2005Root = '/study/rinpoche/2005Data/2005';
+
+addpath(genpath('drtoolbox'));
+addpath(genpath('spider'));
+
+%% Control data
+csv = table2cell(readtable(csvFile, 'Delimiter', ','));
+mask = load_nifti(maskFile);
+maskIdx = find(mask.vol(:) > 0);
+numVoxels = length(maskIdx);
+
+imgFiles = cellfun(@(id, visit) sprintf('%s/TimePoint%s/swmwc1o%s_%s_T1High+orig.nii', nccam2Root, visit, id, visit), csv(1:239, 1), csv(1:239, 4), 'UniformOutput', false);
+gmVols = cellfun(@(img) load_nifti(img).vol, imgFiles, 'UniformOutput', false);
+CtrlX = cell2mat(cellfun(@(gm) gm(maskIdx)', gmVols, 'UniformOutput', false));
+CtrlY = cell2mat(csv(1:239, 5));
+
+%% MYR data
+MYRX = zeros(4, numVoxels);
+
+% TP1 REPLACE_WITH_DASH_DASH 2002
+img2002 = zeros(3, numVoxels);
+% Day 1
+imgFile = sprintf('%s/swmwc1o_SP3_day1_orig_2002.nii', myrRoot);
+img = load_nifti(imgFile);
+img2002(1, :) = img.vol(maskIdx);
+% Day 2
+imgFile = sprintf('%s/swmwc1o_SP3_day2_orig_2002.nii', myrRoot);
+img = load_nifti(imgFile);
+img2002(2, :) = img.vol(maskIdx);
+% Day 3
+imgFile = sprintf('%s/swmwc1o_SP3_day3_orig_2002.nii', myrRoot);
+img = load_nifti(imgFile);
+img2002(3, :) = img.vol(maskIdx);
+% Mean
+MYRX(1, :) = mean(img2002, 1);
+
+% TP2 REPLACE_WITH_DASH_DASH 2005
+img2005 = zeros(2, numVoxels);
+% Day 1
+imgFile = sprintf('%s/swmwc1oSP17_day1_orig.nii', myr2005Root);
+img = load_nifti(imgFile);
+img2005(1, :) = img.vol(maskIdx);
+% Day 2
+imgFile = sprintf('%s/swmwc1oSP17_day1_orig.nii', myr2005Root);
+img = load_nifti(imgFile);
+img2005(2, :) = img.vol(maskIdx);
+% Mean
+MYRX(2, :) = mean(img2005, 1);
+
+% TP3 REPLACE_WITH_DASH_DASH 2007
+imgFile = sprintf('%s/2007/swmwc1o_EFGRE3D.nii', myrRoot);
+img = load_nifti(imgFile);
+MYRX(3, :) = img.vol(maskIdx);
+
+%TP4 REPLACE_WITH_DASH_DASH 2016
+imgFile = sprintf('%s/2016/swmwc1o_MR_PU_2016.nii', myrRoot);
+img = load_nifti(imgFile);
+MYRX(4, :) = img.vol(maskIdx);
+MYRY = [27; 30; 32; 41];
+
+%% Saving the data
+CtrlData = data(CtrlX, CtrlY);
+MYRData = data(MYRX, MYRY);
+save('ControlData.mat', 'CtrlData')
+save('MYRData.mat', 'MYRData')
+
+%% Loading the XY
+load('ControlData.mat');
+load('MYRData.mat');
+global allX
+global allY
+allX = [CtrlData.X; MYRData.X];
+allY = [CtrlData.Y; MYRData.Y];
+clear ControData MYRData;
+numVols = size(allX, 1);
+
+%% RVM
+BrainAGEExp = cell2mat(arrayfun(@(i) TrainTest(i, numVols), 1:numVols, 'UniformOutput', false)');
+
+% Sanity check
+iif(sum(allY-(BrainAGEExp(:, 2)-BrainAGEExp(:, 1))) == 0, 'OK',...
+    true, 'Check again')
+
+% Save results
+BrainAGEExp = [BrainAGEExp, allY];
+save('BrainAGE_Results.csv', 'BrainAGEExp', '-ascii');
+
+%% function TrainTest
+function [BrainAGEExp] = TrainTest(i, numVols)
+tic;
+global allX
+global allY
+% Training
+trainX = allX;
+trainY = allY;
+trainX(i, :) = [];
+trainY(i) = [];
+trainD = data(trainX, trainY);
+[~, trainedModel] = train(relvm_r(kernel('poly', 1)), trainD);
+% Testing
+testD = data(allX(i, :), allY(i));
+predTest = test(trainedModel, testD);
+% BrainAGE (\Delta)
+BrainAGE = predTest.X - predTest.Y;
+% Estimated brain age
+estAge = predTest.X;
+BrainAGEExp = [BrainAGE estAge];
+fprintf('BrainAGE[%d/%d]=%f, EstAge[%d/%d]=%f, CA[%d/%d]=%f in %f sec.\n', i, numVols, BrainAGE,...
+    i, numVols, estAge, i, numVols, allY(i), toc);
+end
+##### SOURCE END #####
+--></body></html>
